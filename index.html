@@ -22,7 +22,7 @@
     --accent-green: #10b981;
     --accent-orange: #f59e0b;
     --accent-pink: #ec4899;
-    --accent-teal: #06b6d4;
+    --accent-teal: #06b6d4; /* Added for MBS */
     
     /* Text */
     --text-main: #f8fafc;
@@ -36,7 +36,7 @@
     color: var(--text-main);
     font-family: 'Inter', sans-serif;
     min-height: 100vh;
-    padding: 30px 20px 40px;
+    padding: 30px 20px 60px;
     overflow-y: scroll;
     -webkit-font-smoothing: antialiased;
   }
@@ -99,6 +99,57 @@
     font-weight: 600;
     letter-spacing: 1.5px;
     margin-top: 2px;
+  }
+
+  /* NOTICE BAR (TICKER) */
+  .notice-bar {
+    background: rgba(245, 158, 11, 0.1); 
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 8px;
+    margin-bottom: 24px;
+    display: none; /* Hidden by default until text is found */
+    overflow: hidden;
+    align-items: stretch;
+  }
+
+  .notice-label {
+    background: var(--accent-orange);
+    color: #000;
+    font-weight: 800;
+    font-size: 0.7rem;
+    padding: 10px 16px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    display: flex;
+    align-items: center;
+    z-index: 2;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+  }
+
+  .marquee-wrapper {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .marquee-text {
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent-orange);
+    animation: marquee 20s linear infinite;
+    padding-left: 100%; /* Starts off-screen to the right */
+  }
+
+  .marquee-text:hover {
+    animation-play-state: paused; /* Pauses when someone hovers to read */
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
   }
 
   /* TODAY BANNER */
@@ -252,7 +303,7 @@
     font-weight: 700;
     letter-spacing: 0.5px;
     text-align: center;
-    width: 100%;
+    width: 100%; /* Fills the 80px grid column perfectly */
   }
 
   /* COLUMN 3: INFO */
@@ -382,8 +433,8 @@
   }
 
   .credit-pill span.name { font-weight: 700; letter-spacing: 0.5px; }
-  .credit-pill span.dev { color: var(--accent-blue); }
-  .credit-pill span.idea { color: var(--accent-teal); }
+  .credit-pill span.dev { color: var(--accent-teal); }
+  .credit-pill span.idea { color: var(--accent-blue); }
   
   .credit-divider {
     height: 16px;
@@ -445,6 +496,13 @@
       <div class="day-label" id="clock-day">Loading...</div>
     </div>
   </header>
+
+  <div class="notice-bar" id="notice-bar">
+    <div class="notice-label">Alert</div>
+    <div class="marquee-wrapper">
+      <div class="marquee-text" id="notice-text"></div>
+    </div>
+  </div>
 
   <div class="today-banner" id="today-banner">
     <span class="today-badge">Today</span>
@@ -711,6 +769,33 @@ function updateClock(){
   // Sync the UI every second across all days
   updateLiveStatus();
 }
+
+// --- DYNAMIC MULTI-NOTICE FETCHER (GOOGLE SHEETS) ---
+const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRMv9q_3Dw0nNvFHRAznaIgz-J5N7Ntq-vYIuX7mh2Vin9UybNgvhMJOAQDAEurxr6u4PdZSbtC3Ggw/pub?output=csv';
+
+fetch(sheetUrl + '&t=' + new Date().getTime())
+  .then(response => response.text())
+  .then(csvText => {
+    // 1. Split the text into separate rows
+    // 2. Remove any extra spaces or invisible quotes Google might add
+    // 3. Filter out any blank rows
+    const notices = csvText.split('\n')
+      .map(row => row.trim().replace(/^"|"$/g, ''))
+      .filter(row => row.length > 0);
+
+    if (notices.length > 0) {
+      // Join all the notices together with a nice visual separator
+      const combinedNotice = notices.join(' &nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp; ');
+      
+      // Inject into the HTML and show the bar
+      document.getElementById('notice-text').innerHTML = combinedNotice;
+      document.getElementById('notice-bar').style.display = 'flex';
+    } else {
+      // If the sheet is empty, hide the bar
+      document.getElementById('notice-bar').style.display = 'none';
+    }
+  })
+  .catch(err => console.log('Could not load notices:', err));
 
 buildUI();
 updateClock();
