@@ -5,6 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MBSTU Academic Calendar 2026</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="icon" href="icon.png">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+        }
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700;800&display=swap');
 
@@ -14,15 +22,13 @@
             --card: #0b1121;
             --card-hover: #162032;
             --border: #334155;
-
             --accent-blue: #3b82f6;
             --accent-purple: #8b5cf6;
             --accent-green: #10b981;
             --accent-orange: #f59e0b;
             --accent-teal: #06b6d4;
             --accent-red: #ef4444;
-            /* Used for off-days and holidays */
-
+            --accent-pink: #ec4899;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
@@ -61,20 +67,91 @@
             position: relative;
         }
 
+        /* UNIVERSAL NAVIGATION BAR */
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .nav-btn.routine {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .nav-btn.routine:hover {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .nav-btn.bus {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .nav-btn.bus:hover {
+            background: var(--accent-green);
+            color: #000;
+        }
+
+        .nav-btn.cal {
+            background: var(--accent-purple);
+            color: #fff;
+            border-color: var(--accent-purple);
+        }
+
+        /* Active State */
+        .nav-btn.tgt {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-orange);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .nav-btn.tgt:hover {
+            background: var(--accent-orange);
+            color: #000;
+        }
+
+        /* PWA Install Button */
+        .nav-btn.install {
+            background: rgba(236, 72, 153, 0.15);
+            color: var(--accent-pink);
+            border-color: rgba(236, 72, 153, 0.3);
+            display: none;
+        }
+
+        .nav-btn.install:hover {
+            background: var(--accent-pink);
+            color: #fff;
+        }
+
         /* HEADER */
         header {
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             justify-content: space-between;
             margin-bottom: 32px;
             padding-bottom: 24px;
             border-bottom: 1px solid var(--border);
-        }
-
-        .title-block {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
         }
 
         .title-block h1 {
@@ -84,28 +161,13 @@
             color: #fff;
         }
 
-        .nav-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(59, 130, 246, 0.15);
-            color: var(--accent-blue);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 700;
+        .title-block p {
+            font-size: 0.85rem;
+            color: var(--accent-purple);
+            font-weight: 600;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            text-decoration: none;
-            transition: all 0.2s;
-            width: fit-content;
-        }
-
-        .nav-btn:hover {
-            background: var(--accent-blue);
-            color: #fff;
-            transform: translateY(-2px);
         }
 
         .live-clock {
@@ -157,10 +219,6 @@
             font-size: 0.95rem;
             color: var(--text-main);
             font-weight: 500;
-        }
-
-        .today-info span {
-            color: var(--text-muted);
         }
 
         .holiday-countdown {
@@ -236,24 +294,20 @@
             transition: all 0.2s;
         }
 
-        /* Date States */
         .date-cell.empty {
             color: transparent;
             pointer-events: none;
         }
 
-        /* Regular Weekend (Thu/Fri) */
         .date-cell.off-day {
             color: var(--accent-red);
         }
 
-        /* Special Vacation / Holiday */
         .date-cell.holiday {
             background: rgba(239, 68, 68, 0.15);
             color: var(--accent-red);
             border: 1px solid rgba(239, 68, 68, 0.3);
             cursor: help;
-            /* Shows a question mark cursor to indicate a tooltip */
         }
 
         .date-cell.holiday:hover {
@@ -263,7 +317,6 @@
             z-index: 5;
         }
 
-        /* Today Highlight */
         .date-cell.today {
             background: var(--accent-green);
             color: #000 !important;
@@ -320,32 +373,12 @@
             color: var(--text-muted);
             font-weight: 500;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .credit-pill:hover {
-            border-color: #475569;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-            transform: translateY(-2px);
         }
 
         .credit-pill span.name {
             font-weight: 700;
             letter-spacing: 0.5px;
-        }
-
-        .credit-pill span.dev {
             color: var(--accent-blue);
-        }
-
-        .credit-pill span.idea {
-            color: var(--accent-teal);
-        }
-
-        .credit-divider {
-            height: 16px;
-            width: 1px;
-            background: var(--border);
         }
 
         /* MOBILE RESPONSIVENESS */
@@ -381,11 +414,6 @@
                 padding: 14px 24px;
                 border-radius: 16px;
             }
-
-            .credit-divider {
-                height: 1px;
-                width: 40px;
-            }
         }
     </style>
 </head>
@@ -393,9 +421,16 @@
 <body>
     <div class="container">
 
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn routine">📅 Routine</a>
+            <a href="bus.html" class="nav-btn bus">🚌 Bus</a>
+            <a href="calendar.html" class="nav-btn cal">📆 Calendar</a>
+            <a href="target.html" class="nav-btn tgt">🎯 Grade</a>
+            <button id="install-btn" class="nav-btn install">📱 Install App</button>
+        </div>
+
         <header>
             <div class="title-block">
-                <a href="routine.html" class="nav-btn">← Back to Routine</a>
                 <h1>Academic Calendar</h1>
                 <p>MBSTU · 2026</p>
             </div>
@@ -403,24 +438,6 @@
                 <div class="time" id="clock">--:--:-- --</div>
                 <div class="day-label" id="clock-day">Loading...</div>
             </div>
-
-            <link rel="manifest" href="manifest.json">
-            <meta name="theme-color" content="#0f172a">
-            <script>
-                if ('serviceWorker' in navigator) {
-                    window.addEventListener('load', () => {
-                        navigator.serviceWorker.register('sw.js')
-                            .then(registration => {
-                                console.log('Offline mode activated');
-                            })
-                            .catch(err => {
-                                console.log('ServiceWorker registration failed: ', err);
-                            });
-                    });
-                }
-            </script>
-
-
         </header>
 
         <div class="today-banner" id="today-banner">
@@ -452,60 +469,63 @@
 
         <div class="credit-wrapper">
             <div class="credit-pill">
-                <div>Crafted by <span class="name idea">Sajeeb Khan</span></div>
-                <!-- <div class="credit-divider"></div>
-      <div>Conceptualized by <span class="name idea">Mahfuzur</span></div> -->
+                <div>Crafted by <span class="name">Sajeeb Khan</span></div>
             </div>
         </div>
+
+
 
     </div>
 
     <script>
-        // MBSTU 2026 Specific Class Holidays (Extracted directly from the image legend)
-        // Note: Month index in Javascript is 0-11 (Jan=0, Feb=1, etc.)
+        // PWA INSTALL LOGIC
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'inline-flex';
+        });
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') { installBtn.style.display = 'none'; }
+                deferredPrompt = null;
+            }
+        });
+
         const holidayList = [
             { m: 0, d: 17, name: "Shab-e-Meraj" },
             { m: 0, d: 23, name: "Sree Sree Saraswati Puja" },
             { m: 1, d: 4, name: "Shab-e-Barat" },
             { m: 1, d: 21, name: "Martyr's Day & Int'l Mother Language Day" },
-            // March 12-25: Ramadan, Shab-e-Qadr, Jumatul Bida, Eid-ul-Fitr
             ...Array.from({ length: 14 }, (_, i) => ({ m: 2, d: 12 + i, name: "Ramadan & Eid-ul-Fitr Vacation" })),
             { m: 2, d: 26, name: "Independence Day" },
             { m: 3, d: 5, name: "Easter Sunday" },
             { m: 3, d: 14, name: "Bangla Nabobarsho" },
             { m: 4, d: 1, name: "May Day & Buddha Purnima" },
-            // May 21 - June 2: Eid-ul-Adha & Summer Vacation
             ...Array.from({ length: 11 }, (_, i) => ({ m: 4, d: 21 + i, name: "Eid-ul-Adha & Summer Vacation" })),
             ...Array.from({ length: 2 }, (_, i) => ({ m: 5, d: 1 + i, name: "Eid-ul-Adha & Summer Vacation" })),
             { m: 5, d: 26, name: "Ashura (Muharram)" },
-            // June 27 - July 1: Summer Vacation (Grishokalin Obokash)
             ...Array.from({ length: 4 }, (_, i) => ({ m: 5, d: 27 + i, name: "Summer Vacation" })),
             { m: 6, d: 1, name: "Summer Vacation" },
             { m: 7, d: 15, name: "National Mourning Day" },
             { m: 7, d: 26, name: "Janmashtami" },
             { m: 8, d: 28, name: "Eid-e-Miladunnabi" },
-            // Oct 18 - 21: Durga Puja
             ...Array.from({ length: 4 }, (_, i) => ({ m: 9, d: 18 + i, name: "Durga Puja" })),
             { m: 11, d: 16, name: "Victory Day" },
-            // Dec 21 - 31: Winter Vacation & Christmas
             ...Array.from({ length: 11 }, (_, i) => ({ m: 11, d: 21 + i, name: "Winter Vacation & Christmas" }))
         ];
 
         const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        // MBSTU week format: Saturday to Friday
         const DAYS_HEADER = ["S", "S", "M", "T", "W", "T", "F"];
 
         function pad(n) { return String(n).padStart(2, '0'); }
-
-        // Ensure strictly Bangladesh Time
         function getBDTime() { return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" })); }
-
-        // Convert standard JS getDay() (Sun=0) to Grid Index where Sat=0, Thu=5, Fri=6
         function getGridDayIndex(jsDay) { return (jsDay + 1) % 7; }
 
-        function getHoliday(m, d) {
-            return holidayList.find(h => h.m === m && h.d === d);
-        }
+        function getHoliday(m, d) { return holidayList.find(h => h.m === m && h.d === d); }
 
         function generateCalendar() {
             const grid = document.getElementById('calendar-grid');
@@ -513,8 +533,7 @@
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth();
             const currentDate = now.getDate();
-
-            const displayYear = 2026; // Static MBSTU Calendar Year
+            const displayYear = 2026;
 
             for (let m = 0; m < 12; m++) {
                 const card = document.createElement('div');
@@ -528,46 +547,36 @@
                 const daysGrid = document.createElement('div');
                 daysGrid.className = 'days-grid';
 
-                // Headers (Sat - Fri)
                 DAYS_HEADER.forEach((day, index) => {
                     const el = document.createElement('div');
-                    // Indices 5 and 6 are Thursday and Friday in our Saturday-first grid
                     el.className = `day-name ${index === 5 || index === 6 ? 'off-day' : ''}`;
                     el.textContent = day;
                     daysGrid.appendChild(el);
                 });
 
                 const daysInMonth = new Date(displayYear, m + 1, 0).getDate();
-
-                // Find what day of the week the 1st of the month lands on
                 const firstDayJs = new Date(displayYear, m, 1).getDay();
                 const startingGridIndex = getGridDayIndex(firstDayJs);
 
-                // Empty cells before start of month
                 for (let i = 0; i < startingGridIndex; i++) {
                     const el = document.createElement('div');
                     el.className = 'date-cell empty';
                     daysGrid.appendChild(el);
                 }
 
-                // Actual dates
                 for (let d = 1; d <= daysInMonth; d++) {
                     const el = document.createElement('div');
                     const gridIndex = (startingGridIndex + d - 1) % 7;
 
                     let classes = ['date-cell'];
-
-                    // Mark Weekends (Thu/Fri)
                     if (gridIndex === 5 || gridIndex === 6) classes.push('off-day');
 
-                    // Mark Specific Holidays
                     const holidayData = getHoliday(m, d);
                     if (holidayData) {
                         classes.push('holiday');
-                        el.title = holidayData.name; // Adds a hover tooltip to show the holiday name!
+                        el.title = holidayData.name;
                     }
 
-                    // Mark Today (Only highlights if you view it during the year 2026)
                     if (displayYear === currentYear && m === currentMonth && d === currentDate) {
                         classes.push('today');
                     }
@@ -576,7 +585,6 @@
                     el.textContent = d;
                     daysGrid.appendChild(el);
                 }
-
                 card.appendChild(daysGrid);
                 grid.appendChild(card);
             }
@@ -586,11 +594,9 @@
             const now = getBDTime();
             const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
-            // Format the visual date string
             const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
             document.getElementById('today-info').innerHTML = `<strong>${dateStr}</strong>`;
 
-            // Calculate Next Holiday specifically for 2026
             let nextHol = null;
             for (let h of holidayList) {
                 const holDate = new Date(2026, h.m, h.d).getTime();

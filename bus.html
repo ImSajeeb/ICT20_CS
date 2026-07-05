@@ -4,7 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bus Schedule</title>
+    <title>MBSTU Bus Schedule</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="icon" href="icon.png">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+        }
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700;800&display=swap');
 
@@ -14,14 +22,12 @@
             --card: #0b1121;
             --card-hover: #162032;
             --border: #334155;
-
             --accent-blue: #3b82f6;
             --accent-purple: #8b5cf6;
             --accent-green: #10b981;
             --accent-orange: #f59e0b;
             --accent-pink: #ec4899;
             --accent-teal: #06b6d4;
-
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
@@ -37,7 +43,7 @@
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            padding: 30px 20px 40px;
+            padding: 30px 20px 60px;
             overflow-y: scroll;
             -webkit-font-smoothing: antialiased;
         }
@@ -60,20 +66,91 @@
             position: relative;
         }
 
+        /* UNIVERSAL NAVIGATION BAR */
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .nav-btn.routine {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .nav-btn.routine:hover {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .nav-btn.bus {
+            background: var(--accent-green);
+            color: #000;
+            border-color: var(--accent-green);
+        }
+
+        /* Active State */
+        .nav-btn.cal {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-purple);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .nav-btn.cal:hover {
+            background: var(--accent-purple);
+            color: #fff;
+        }
+
+        .nav-btn.tgt {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-orange);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .nav-btn.tgt:hover {
+            background: var(--accent-orange);
+            color: #000;
+        }
+
+        /* PWA Install Button */
+        .nav-btn.install {
+            background: rgba(236, 72, 153, 0.15);
+            color: var(--accent-pink);
+            border-color: rgba(236, 72, 153, 0.3);
+            display: none;
+        }
+
+        .nav-btn.install:hover {
+            background: var(--accent-pink);
+            color: #fff;
+        }
+
         /* HEADER */
         header {
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             justify-content: space-between;
             margin-bottom: 32px;
             padding-bottom: 24px;
             border-bottom: 1px solid var(--border);
-        }
-
-        .title-block {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
         }
 
         .title-block h1 {
@@ -83,28 +160,13 @@
             color: #fff;
         }
 
-        .nav-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(59, 130, 246, 0.15);
-            color: var(--accent-blue);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 700;
+        .title-block p {
+            font-size: 0.85rem;
+            color: var(--accent-green);
+            font-weight: 600;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            text-decoration: none;
-            transition: all 0.2s;
-            width: fit-content;
-        }
-
-        .nav-btn:hover {
-            background: var(--accent-blue);
-            color: #fff;
-            transform: translateY(-2px);
         }
 
         .live-clock {
@@ -126,6 +188,31 @@
             font-weight: 600;
             letter-spacing: 1.5px;
             margin-top: 2px;
+        }
+
+        /* LIVE TRACKER BUTTON */
+        .live-track-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+            color: #fff;
+            padding: 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .live-track-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
         }
 
         /* NOTICE BAR */
@@ -302,7 +389,6 @@
             border-color: #475569;
         }
 
-        /* Trip States */
         .slot.active-now {
             border-color: var(--accent-orange);
             background: linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, var(--card) 100%);
@@ -483,20 +569,7 @@
             }
         }
 
-        .empty-day {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .empty-day .icon {
-            font-size: 3rem;
-            margin-bottom: 12px;
-            opacity: 0.5;
-        }
-
-        /* SPECIAL NOTES SECTION */
+        /* SPECIAL NOTES */
         .special-notes {
             background: rgba(59, 130, 246, 0.05);
             border: 1px solid rgba(59, 130, 246, 0.2);
@@ -641,34 +714,28 @@
 <body>
     <div class="container">
 
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn routine">📅 Routine</a>
+            <a href="bus.html" class="nav-btn bus">🚌 Bus</a>
+            <a href="calendar.html" class="nav-btn cal">📆 Calendar</a>
+            <a href="target.html" class="nav-btn tgt">🎯 Grade</a>
+            <button id="install-btn" class="nav-btn install">📱 Install App</button>
+        </div>
+
         <header>
             <div class="title-block">
-                <a href="index.html" class="nav-btn">← Back to Routine</a>
                 <h1>Bus Schedule</h1>
+                <p>MBSTU · Student Transport</p>
             </div>
             <div class="live-clock">
                 <div class="time" id="clock">--:--:-- --</div>
                 <div class="day-label" id="clock-day">Loading...</div>
             </div>
-
-            <link rel="manifest" href="manifest.json">
-            <meta name="theme-color" content="#0f172a">
-            <script>
-                if ('serviceWorker' in navigator) {
-                    window.addEventListener('load', () => {
-                        navigator.serviceWorker.register('sw.js')
-                            .then(registration => {
-                                console.log('Offline mode activated');
-                            })
-                            .catch(err => {
-                                console.log('ServiceWorker registration failed: ', err);
-                            });
-                    });
-                }
-            </script>
-
-
         </header>
+
+        <a href="https://transport.mbstu.ac.bd/MBSTU-Wheels" target="_blank" class="live-track-btn">
+            📍 Open MBSTU Wheels (Live Tracker)
+        </a>
 
         <div class="notice-bar" id="notice-bar">
             <div class="notice-label">Alert</div>
@@ -702,34 +769,37 @@
         <div class="credit-wrapper">
             <div class="credit-pill">
                 <div>Crafted by <span class="name idea">Sajeeb Khan</span></div>
-                <!-- <div class="credit-divider"></div>
-      <div>Conceptualized by <span class="name idea">Mahfuzur</span></div> -->
             </div>
         </div>
 
     </div>
 
     <script>
+        // PWA INSTALL LOGIC
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'inline-flex';
+        });
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') { installBtn.style.display = 'none'; }
+                deferredPrompt = null;
+            }
+        });
+
         // Data exactly from the Bengali Image (Students Only)
-        // Format: [Campus Hour, Campus Min, City Hour, City Min, Number of Buses]
         const schedules = {
             regular: [
-                [8, 0, 8, 30, 3],
-                [9, 0, 9, 30, 3],
-                [10, 0, 10, 30, 2],
-                [13, 10, 13, 40, 3],
-                [14, 30, 15, 0, 4],
-                [16, 10, 16, 40, 6],
-                [17, 15, 17, 45, 4],
-                [18, 20, 19, 0, 4],
-                [20, 10, 20, 50, 3]
+                [8, 0, 8, 30, 3], [9, 0, 9, 30, 3], [10, 0, 10, 30, 2], [13, 10, 13, 40, 3],
+                [14, 30, 15, 0, 4], [16, 10, 16, 40, 6], [17, 15, 17, 45, 4], [18, 20, 19, 0, 4], [20, 10, 20, 50, 3]
             ],
             offday: [
-                [9, 0, 9, 30, 2],
-                [14, 30, 15, 0, 3],
-                [16, 30, 17, 0, 4],
-                [18, 0, 19, 0, 2],
-                [20, 20, 21, 0, 2]
+                [9, 0, 9, 30, 2], [14, 30, 15, 0, 3], [16, 30, 17, 0, 4], [18, 0, 19, 0, 2], [20, 20, 21, 0, 2]
             ]
         };
 
@@ -742,9 +812,8 @@
 
         function getBDTime() { return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" })); }
 
-        // Returns 'regular' for Sat-Wed, 'offday' for Thu-Fri
         function getTodayType() {
-            const day = getBDTime().getDay(); // 0=Sun, 4=Thu, 5=Fri, 6=Sat
+            const day = getBDTime().getDay();
             return (day === 4 || day === 5) ? 'offday' : 'regular';
         }
 
@@ -768,7 +837,7 @@
             const [campusH, campusM, cityH, cityM, busCount] = slotData;
             const campusSecs = (campusH * 3600) + (campusM * 60);
             const citySecs = (cityH * 3600) + (cityM * 60);
-            const endSecs = citySecs + (35 * 60); // Assume 35 min return trip to campus
+            const endSecs = citySecs + (35 * 60);
 
             const div = document.createElement('div');
             div.className = 'slot';
@@ -778,20 +847,20 @@
             div.dataset.end = endSecs;
 
             div.innerHTML = `
-    <div class="time-col">
-      <div class="t-label">Departs Campus</div>
-      <div class="t-time">${formatTime(campusH, campusM)}</div>
-    </div>
-    <div class="time-col">
-      <div class="t-label">Departs City</div>
-      <div class="t-time">${formatTime(cityH, cityM)}</div>
-    </div>
-    <div class="trip-info">
-      <div class="trip-tag">TRIP ${index + 1}</div>
-      <div class="trip-users">Students · <strong>${busCount} Buses</strong></div>
-    </div>
-    <div class="live-status"></div>
-  `;
+                <div class="time-col">
+                    <div class="t-label">Departs Campus</div>
+                    <div class="t-time">${formatTime(campusH, campusM)}</div>
+                </div>
+                <div class="time-col">
+                    <div class="t-label">Departs City</div>
+                    <div class="t-time">${formatTime(cityH, cityM)}</div>
+                </div>
+                <div class="trip-info">
+                    <div class="trip-tag">TRIP ${index + 1}</div>
+                    <div class="trip-users">Students · <strong>${busCount} Buses</strong></div>
+                </div>
+                <div class="live-status"></div>
+            `;
             return div;
         }
 
@@ -830,7 +899,6 @@
                 const citySecs = parseInt(slot.dataset.city);
                 const endSecs = parseInt(slot.dataset.end);
 
-                // Only show live tracking if the tab matches the actual current day
                 if (type !== todayType) {
                     slot.className = 'slot';
                     statusDiv.innerHTML = `<span class="status-pill finished">Inactive</span>`;
@@ -838,40 +906,31 @@
                 }
 
                 if (nowSecs >= endSecs) {
-                    // 1. Fully Completed
                     slot.className = 'slot finished-slot';
                     statusDiv.innerHTML = `<span class="status-pill finished">Finished</span>`;
-
                 } else if (nowSecs >= citySecs && nowSecs < endSecs) {
-                    // 2. City -> Campus
                     slot.className = 'slot active-return';
                     const remSecs = endSecs - nowSecs;
                     statusDiv.innerHTML = `
-        <span class="status-pill now-campus">Returning</span>
-        <div class="rem-time">arr. ${formatCountdown(remSecs)}</div>
-      `;
-
+                        <span class="status-pill now-campus">Returning</span>
+                        <div class="rem-time">arr. ${formatCountdown(remSecs)}</div>
+                    `;
                 } else if (nowSecs >= campusSecs && nowSecs < citySecs) {
-                    // 3. Campus -> City
                     slot.className = 'slot active-now';
                     const remSecs = citySecs - nowSecs;
                     statusDiv.innerHTML = `
-        <span class="status-pill now-city">To City</span>
-        <div class="rem-time">dep. ${formatCountdown(remSecs)}</div>
-      `;
-
+                        <span class="status-pill now-city">To City</span>
+                        <div class="rem-time">dep. ${formatCountdown(remSecs)}</div>
+                    `;
                 } else {
-                    // 4. Future Trip
                     slot.className = 'slot';
                     const startsIn = campusSecs - nowSecs;
                     statusDiv.innerHTML = `
-        <span class="status-pill upcoming">Upcoming</span>
-        <div class="rem-time muted">in ${formatCountdown(startsIn)}</div>
-      `;
+                        <span class="status-pill upcoming">Upcoming</span>
+                        <div class="rem-time muted">in ${formatCountdown(startsIn)}</div>
+                    `;
                 }
             });
-
-            // Banner Update
             updateBanner(nowSecs, todayType);
         }
 
@@ -913,21 +972,20 @@
 
             document.getElementById('clock').textContent = `${pad(h)}:${m}:${s} ${ampm}`;
             document.getElementById('clock-day').textContent = days[now.getDay()];
-
             updateLiveStatus();
         }
 
         // Google Sheets Ticker
         // const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRMv9q_3Dw0nNvFHRAznaIgz-J5N7Ntq-vYIuX7mh2Vin9UybNgvhMJOAQDAEurxr6u4PdZSbtC3Ggw/pub?output=csv';
         // fetch(sheetUrl + '&t=' + new Date().getTime())
-        //   .then(response => response.text())
-        //   .then(csvText => {
-        //     const notices = csvText.split('\n').map(row => row.trim().replace(/^"|"$/g, '')).filter(row => row.length > 0);
-        //     if (notices.length > 0) {
-        //       document.getElementById('notice-text').innerHTML = notices.join(' &nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp; ');
-        //       document.getElementById('notice-bar').style.display = 'flex';
-        //     }
-        //   }).catch(err => console.log('Notice fetch error:', err));
+        //     .then(response => response.text())
+        //     .then(csvText => {
+        //         const notices = csvText.split('\n').map(row => row.trim().replace(/^"|"$/g, '')).filter(row => row.length > 0);
+        //         if (notices.length > 0) {
+        //             document.getElementById('notice-text').innerHTML = notices.join(' &nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp; ');
+        //             document.getElementById('notice-bar').style.display = 'flex';
+        //         }
+        //     }).catch(err => console.log('Notice fetch error:', err));
 
         buildUI();
         updateClock();
